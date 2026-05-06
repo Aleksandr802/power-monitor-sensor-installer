@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Power Monitor Sensor — Web Installer</title>
+  <title>Power Monitor Sensor — Веб-інсталятор</title>
   <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js"></script>
   <style>
     /* ─── Design tokens ─────────────────────────────────── */
@@ -507,9 +507,9 @@
 <body>
 
   <!-- Browser support banner (shown for non-Chrome/Edge) -->
-  <div id="browser-banner">
-    ⚠️ Web flashing requires <strong>Chrome</strong> or <strong>Edge</strong> on desktop.
-    <a href="https://www.google.com/chrome/" target="_blank">Download Chrome →</a>
+    <div id="browser-banner">
+      ⚠️ Веб-прошивка працює лише у <strong>Chrome</strong> або <strong>Edge</strong> на комп'ютері.
+      <a href="https://www.google.com/chrome/" target="_blank">Завантажити Chrome →</a>
   </div>
 
   <!-- ── Header ─────────────────────────────────────────── -->
@@ -524,8 +524,8 @@
       </svg>
     </div>
     <h1>Power Monitor <span>Sensor</span></h1>
-    <p class="subtitle">ESP32-C3 Super Mini — Web Installer</p>
-    <span class="version-badge">Firmware v1.0.0</span>
+    <p class="subtitle">ESP32-C3 Super Mini — Веб-інсталятор</p>
+    <span class="version-badge">Прошивка v1.0.0</span>
   </header>
 
   <!-- ── Main ───────────────────────────────────────────── -->
@@ -535,11 +535,11 @@
     <div class="tabs" role="tablist">
       <button class="tab-btn active" role="tab" onclick="switchTab('install', this)">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
-        First Install
+          Перше встановлення
       </button>
       <button class="tab-btn" role="tab" onclick="switchTab('ota', this)">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
-        Firmware Update (OTA)
+          Оновлення прошивки (OTA)
       </button>
     </div>
 
@@ -548,40 +548,40 @@
 
       <!-- Steps -->
       <div class="card">
-        <h2><span class="icon">📋</span> Before you begin</h2>
+          <h2><span class="icon">📋</span> Перед початком</h2>
         <ol class="steps">
-          <li><span class="num">1</span><span>Plug your <strong>ESP32-C3 Super Mini</strong> into this computer via a <strong>USB data cable</strong> (not charge-only).</span></li>
-          <li><span class="num">2</span><span>Close <strong>Arduino IDE</strong>, <strong>esptool</strong>, or any other app using the serial port.</span></li>
-          <li><span class="num">3</span><span>Click <strong>Install Smart Sensor</strong> below and select your device from the browser popup.</span></li>
-          <li><span class="num">4</span><span>Wait <strong>20–40 seconds</strong> while the firmware is written. Do not disconnect.</span></li>
-          <li><span class="num">5</span><span>Done! Your device will reboot automatically.</span></li>
+            <li><span class="num">1</span><span>Підключіть <strong>ESP32-C3 Super Mini</strong> до цього комп'ютера через <strong>USB-кабель для передачі даних</strong> (не лише для заряджання).</span></li>
+            <li><span class="num">2</span><span>Закрийте <strong>Arduino IDE</strong>, <strong>esptool</strong> та інші програми, що використовують послідовний порт.</span></li>
+            <li><span class="num">3</span><span>Натисніть <strong>Встановити Smart Sensor</strong> нижче та виберіть свій пристрій у вікні браузера.</span></li>
+            <li><span class="num">4</span><span>Зачекайте <strong>20–40 секунд</strong>, поки записується прошивка. Не від'єднуйте пристрій.</span></li>
+            <li><span class="num">5</span><span>Готово! Пристрій перезавантажиться автоматично.</span></li>
         </ol>
 
         <div class="alert alert-warning">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>Works in <strong>Chrome</strong> or <strong>Edge</strong> on desktop only. Mobile and Firefox are not supported.</span>
+            <span>Працює лише у <strong>Chrome</strong> або <strong>Edge</strong> на комп'ютері. Мобільні браузери та Firefox не підтримуються.</span>
         </div>
       </div>
 
       <!-- Install button -->
       <div class="card">
-        <h2><span class="icon">⚡</span> Install Firmware</h2>
+          <h2><span class="icon">⚡</span> Встановити прошивку</h2>
         <div class="install-area">
-          <p>Connects via WebSerial and flashes <strong>bootloader + partitions + firmware</strong> in one step.</p>
+            <p>Підключається через WebSerial і прошиває <strong>bootloader + partitions + firmware</strong> за один крок.</p>
 
           <esp-web-install-button manifest="manifest.json" id="install-btn">
             <button class="install-btn" slot="activate">
               <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
-              Install Smart Sensor
+                Встановити Smart Sensor
             </button>
             <span slot="unsupported">
               <button class="install-btn" disabled>
-                ⚠️ Browser not supported — use Chrome or Edge
+                  ⚠️ Браузер не підтримується — використайте Chrome або Edge
               </button>
             </span>
           </esp-web-install-button>
 
-          <p>Chip: <strong>ESP32-C3 Super Mini</strong> &nbsp;|&nbsp; Flash: ~1.5 MB</p>
+            <p>Чип: <strong>ESP32-C3 Super Mini</strong> &nbsp;|&nbsp; Розмір: ~1.5 MB</p>
         </div>
       </div>
 
@@ -591,27 +591,27 @@
     <div id="panel-ota" class="panel">
 
       <div class="card">
-        <h2><span class="icon">🔄</span> Firmware Update (OTA)</h2>
+          <h2><span class="icon">🔄</span> Оновлення прошивки (OTA)</h2>
         <p style="font-size:14px; color:var(--text-muted); margin-bottom:18px;">
-          Choose your preferred OTA method. The device must already have this firmware installed.
+            Оберіть зручний спосіб OTA-оновлення. На пристрої вже має бути встановлена ця прошивка.
         </p>
 
         <!-- Method 1: Web OTA via ESP Web Tools -->
         <div class="ota-method">
           <h4>
-            <span class="badge badge-green">Recommended</span>
-            Method 1 — Update via USB (ESP Web Tools)
+              <span class="badge badge-green">Рекомендовано</span>
+              Спосіб 1 — Оновлення через USB (ESP Web Tools)
           </h4>
-          <p>Same as first install — connects via USB cable and re-flashes only the firmware partition.</p>
+            <p>Так само, як і перше встановлення: підключення через USB-кабель і перепрошивка лише розділу firmware.</p>
           <div style="margin-top:16px;">
             <div class="install-area" style="padding:20px;">
               <esp-web-install-button manifest="manifest-ota.json" id="ota-btn">
                 <button class="install-btn" slot="activate" style="background: linear-gradient(135deg,#16a34a,#15803d);">
                   <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg>
-                  Update Firmware
+                    Оновити прошивку
                 </button>
                 <span slot="unsupported">
-                  <button class="install-btn" disabled>⚠️ Browser not supported</button>
+                    <button class="install-btn" disabled>⚠️ Браузер не підтримується</button>
                 </span>
               </esp-web-install-button>
             </div>
@@ -621,17 +621,17 @@
         <!-- Method 2: HTTP OTA via device local page -->
         <div class="ota-method">
           <h4>
-            <span class="badge badge-blue">WiFi</span>
-            Method 2 — Over-the-Air via Local Network
+              <span class="badge badge-blue">Wi-Fi</span>
+              Спосіб 2 — OTA через локальну мережу
           </h4>
-          <p>Open the device's built-in OTA update page on your local network. Device must be connected to WiFi.</p>
+            <p>Відкрийте вбудовану сторінку OTA-оновлення пристрою у вашій локальній мережі. Пристрій має бути підключений до Wi-Fi.</p>
           <div class="ota-input-row">
-            <input type="text" id="device-ip" placeholder="Device IP address  e.g. 192.168.1.42" />
-            <button class="btn-primary" onclick="openDeviceOTA()">Open Device Page →</button>
+              <input type="text" id="device-ip" placeholder="IP-адреса пристрою, напр. 192.168.1.42" />
+              <button class="btn-primary" onclick="openDeviceOTA()">Відкрити сторінку пристрою →</button>
           </div>
           <div class="alert alert-info" style="margin-top:12px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Find the IP address in your router's admin page or from the device serial output.</span>
+              <span>IP-адресу можна знайти в адмінпанелі роутера або в послідовному виводі пристрою.</span>
           </div>
         </div>
 
@@ -639,11 +639,11 @@
 
       <!-- OTA instructions -->
       <div class="card">
-        <h2><span class="icon">📦</span> What gets updated?</h2>
+          <h2><span class="icon">📦</span> Що саме оновлюється?</h2>
         <ol class="steps">
-          <li><span class="num">1</span><span>Only the <strong>application partition</strong> (firmware.bin) is replaced — bootloader and settings are preserved.</span></li>
-          <li><span class="num">2</span><span>Your device's <strong>WiFi credentials</strong> and <strong>configuration</strong> are not erased.</span></li>
-          <li><span class="num">3</span><span>The device reboots into the new firmware automatically after update.</span></li>
+            <li><span class="num">1</span><span>Замінюється лише <strong>розділ застосунку</strong> (firmware.bin) — bootloader і налаштування зберігаються.</span></li>
+            <li><span class="num">2</span><span><strong>Wi-Fi облікові дані</strong> та <strong>конфігурація</strong> пристрою не видаляються.</span></li>
+            <li><span class="num">3</span><span>Після оновлення пристрій автоматично перезавантажується в нову прошивку.</span></li>
         </ol>
       </div>
 
@@ -651,47 +651,47 @@
 
     <!-- ══ TROUBLESHOOTING (both panels) ════════════════ -->
     <details>
-      <summary>🔌 Serial port not found / no device listed</summary>
+      <summary>🔌 Послідовний порт не знайдено / пристрій не відображається</summary>
       <div class="details-body">
         <ul>
-          <li>Try a different USB cable — many cables are <strong>charge-only</strong> and have no data lines.</li>
-          <li>Install the <strong>CH340 / CP210x driver</strong> for your OS (ESP32-C3 Super Mini uses CH340G).</li>
-          <li>On Linux, add yourself to the <code>dialout</code> group: <code>sudo usermod -aG dialout $USER</code>, then log out and back in.</li>
-          <li>Close all serial monitors (Arduino IDE, minicom, screen).</li>
+            <li>Спробуйте інший USB-кабель — багато кабелів призначені <strong>лише для заряджання</strong> і не мають ліній даних.</li>
+            <li>Встановіть <strong>драйвер CH340 / CP210x</strong> для вашої ОС (ESP32-C3 Super Mini використовує CH340G).</li>
+            <li>У Linux додайте себе до групи <code>dialout</code>: <code>sudo usermod -aG dialout $USER</code>, потім вийдіть і увійдіть знову.</li>
+            <li>Закрийте всі програми моніторингу порту (Arduino IDE, minicom, screen).</li>
         </ul>
       </div>
     </details>
 
     <details>
-      <summary>⚠️ Flashing starts but fails or times out</summary>
+      <summary>⚠️ Прошивка стартує, але завершується помилкою або таймаутом</summary>
       <div class="details-body">
         <ul>
-          <li>Hold the <strong>BOOT button</strong> on the ESP32-C3 Super Mini while clicking Install, release after the progress starts.</li>
-          <li>Try a shorter USB cable or a different port on your computer.</li>
-          <li>Reduce the baud rate if you see frequent errors (this is handled automatically by ESP Web Tools).</li>
-          <li>Ensure the device is <strong>not in deep sleep</strong> — press the reset button first.</li>
+            <li>Утримуйте <strong>кнопку BOOT</strong> на ESP32-C3 Super Mini під час натискання «Встановити», відпустіть після початку прогресу.</li>
+            <li>Спробуйте коротший USB-кабель або інший USB-порт на комп'ютері.</li>
+            <li>Зменште baud rate, якщо бачите часті помилки (ESP Web Tools зазвичай робить це автоматично).</li>
+            <li>Переконайтеся, що пристрій <strong>не в deep sleep</strong> — спочатку натисніть кнопку reset.</li>
         </ul>
       </div>
     </details>
 
     <details>
-      <summary>🌐 Browser says "WebSerial not supported"</summary>
+      <summary>🌐 Браузер показує "WebSerial не підтримується"</summary>
       <div class="details-body">
         <ul>
-          <li>Use <strong>Google Chrome 89+</strong> or <strong>Microsoft Edge 89+</strong> on Windows, macOS, or Linux desktop.</li>
-          <li>Firefox, Safari, and mobile browsers do not support WebSerial.</li>
-          <li>Check that <code>chrome://flags/#enable-experimental-web-platform-features</code> is enabled if using an older Chrome version.</li>
+            <li>Використовуйте <strong>Google Chrome 89+</strong> або <strong>Microsoft Edge 89+</strong> на Windows, macOS чи Linux (десктоп).</li>
+            <li>Firefox, Safari та мобільні браузери не підтримують WebSerial.</li>
+            <li>Для старих версій Chrome перевірте, що ввімкнено <code>chrome://flags/#enable-experimental-web-platform-features</code>.</li>
         </ul>
       </div>
     </details>
 
     <details>
-      <summary>💡 Device connected but not responding after install</summary>
+      <summary>💡 Пристрій підключений, але не відповідає після встановлення</summary>
       <div class="details-body">
         <ul>
-          <li>Press the <strong>RST (reset) button</strong> on the board to force a reboot.</li>
-          <li>Open a serial monitor at <strong>115200 baud</strong> to see boot messages.</li>
-          <li>If the device bootloops, re-flash using the <em>First Install</em> tab (full flash).</li>
+            <li>Натисніть <strong>кнопку RST (reset)</strong> на платі для примусового перезавантаження.</li>
+            <li>Відкрийте монітор порту на <strong>115200 baud</strong>, щоб побачити повідомлення завантаження.</li>
+            <li>Якщо пристрій у bootloop, перепрошийте через вкладку <em>Перше встановлення</em> (повна прошивка).</li>
         </ul>
       </div>
     </details>
@@ -701,15 +701,15 @@
   <!-- ── Footer ─────────────────────────────────────────── -->
   <footer>
     Power Monitor Sensor &nbsp;·&nbsp; ESP32-C3 Super Mini &nbsp;·&nbsp;
-    Powered by <a href="https://esphome.github.io/esp-web-tools/" target="_blank" rel="noopener">ESP Web Tools</a>
+    Працює на базі <a href="https://esphome.github.io/esp-web-tools/" target="_blank" rel="noopener">ESP Web Tools</a>
   </footer>
 
   <!-- ══ Progress overlay ═════════════════════════════════ -->
   <div id="progress-overlay">
     <div class="progress-card">
       <div class="spinner"></div>
-      <h3 id="progress-title">Preparing…</h3>
-      <p  id="progress-desc">Connecting to ESP32-C3 Super Mini</p>
+      <h3 id="progress-title">Підготовка…</h3>
+      <p  id="progress-desc">Підключення до ESP32-C3 Super Mini</p>
       <div class="progress-bar-track">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
@@ -723,11 +723,11 @@
       <div class="checkmark-circle">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h3>Device Ready! 🎉</h3>
-      <p id="success-msg">Power Monitor Sensor firmware installed successfully.<br>The device is rebooting — this takes about 5 seconds.</p>
+      <h3>Пристрій готовий! 🎉</h3>
+      <p id="success-msg">Прошивку Power Monitor Sensor успішно встановлено.<br>Пристрій перезавантажується — це займе близько 5 секунд.</p>
       <div class="success-actions">
-        <button class="btn-secondary" onclick="closeSuccess()">Close</button>
-        <button class="btn-primary" onclick="switchTab('ota', document.querySelectorAll('.tab-btn')[1]); closeSuccess();">Future Updates →</button>
+          <button class="btn-secondary" onclick="closeSuccess()">Закрити</button>
+          <button class="btn-primary" onclick="switchTab('ota', document.querySelectorAll('.tab-btn')[1]); closeSuccess();">Майбутні оновлення →</button>
       </div>
     </div>
   </div>
@@ -753,19 +753,19 @@
     /* ── OTA local page ── */
     function openDeviceOTA() {
       const ip = document.getElementById('device-ip').value.trim();
-      if (!ip) { alert('Please enter the device IP address.'); return; }
+      if (!ip) { alert('Будь ласка, введіть IP-адресу пристрою.'); return; }
       const url = 'http://' + ip + '/update';
       window.open(url, '_blank', 'noopener');
     }
 
     /* ── Progress state map ── */
     const STATE_MAP = {
-      'initializing':  { title: 'Initializing…',       desc: 'Starting ESP Web Tools',                     pct: 5  },
-      'preparing':     { title: 'Preparing…',           desc: 'Connecting to ESP32-C3 Super Mini',          pct: 15 },
-      'erasing':       { title: 'Erasing flash…',       desc: 'Clearing existing firmware',                 pct: 30 },
-      'writing':       { title: 'Writing firmware…',    desc: 'Flashing Power Monitor Sensor — please wait', pct: 60 },
-      'finished':      { title: 'Done!',                desc: 'Firmware written successfully',              pct: 100 },
-      'error':         { title: 'Error',                desc: 'Something went wrong — see troubleshooting', pct: 0  },
+      'initializing':  { title: 'Ініціалізація…',       desc: 'Запуск ESP Web Tools',                       pct: 5  },
+      'preparing':     { title: 'Підготовка…',          desc: 'Підключення до ESP32-C3 Super Mini',         pct: 15 },
+      'erasing':       { title: 'Очищення flash…',      desc: 'Очищення наявної прошивки',                   pct: 30 },
+      'writing':       { title: 'Запис прошивки…',      desc: 'Прошивання Power Monitor Sensor — зачекайте', pct: 60 },
+      'finished':      { title: 'Готово!',              desc: 'Прошивку успішно записано',                   pct: 100 },
+      'error':         { title: 'Помилка',              desc: 'Щось пішло не так — див. розділ усунення проблем', pct: 0  },
     };
 
     function setProgress(state, bytePct) {
@@ -798,10 +798,10 @@
           document.getElementById('progress-overlay').classList.remove('show');
           if (isOTA) {
             document.getElementById('success-msg').textContent =
-              'Firmware updated successfully! The device is rebooting into the new version.';
+                'Прошивку успішно оновлено! Пристрій перезавантажується в нову версію.';
           } else {
             document.getElementById('success-msg').textContent =
-              'Power Monitor Sensor firmware installed successfully.\nThe device is rebooting — this takes about 5 seconds.';
+                'Прошивку Power Monitor Sensor успішно встановлено.\nПристрій перезавантажується — це займе близько 5 секунд.';
           }
           document.getElementById('success-screen').classList.add('show');
         }
