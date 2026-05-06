@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Power Monitor Sensor — Web Installer</title>
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js"></script>
+  <style>
+    /* ─── Design tokens ─────────────────────────────────── */
+    :root {
+      --primary:       #3b82f6;
+      --primary-dark:  #1d4ed8;
+      --primary-glow:  rgba(59,130,246,.25);
+      --success:       #22c55e;
+      --success-bg:    rgba(34,197,94,.12);
+      --warning:       #f59e0b;
+      --warning-bg:    rgba(245,158,11,.12);
+      --error:         #ef4444;
+      --error-bg:      rgba(239,68,68,.12);
+      --bg:            #0a0f1e;
+      --surface:       #111827;
+      --surface2:      #1f2937;
+      --surface3:      #374151;
+      --text:          #f9fafb;
+      --text-muted:    #9ca3af;
+      --border:        #374151;
+      --radius:        14px;
+      --radius-sm:     8px;
+      --shadow:        0 8px 32px rgba(0,0,0,.4);
+      --transition:    .2s ease;
+    }
+
+    /* ─── Reset & base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+
+    /* ─── Browser requirement banner ───────────────────── */
+    #browser-banner {
+      display: none;
+      width: 100%;
+      padding: 12px 24px;
+      background: var(--warning-bg);
+      border-bottom: 1px solid var(--warning);
+      color: var(--warning);
+      font-size: 14px;
+      text-align: center;
+      font-weight: 500;
+    }
+    #browser-banner a { color: var(--warning); text-decoration: underline; }
+
+    /* ─── Header ────────────────────────────────────────── */
+    header {
+      width: 100%;
+      max-width: 700px;
+      padding: 48px 24px 0;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 32px var(--primary-glow);
+    }
+    .logo svg { width: 44px; height: 44px; fill: none; stroke: #fff; stroke-width: 1.8; }
+    header h1 {
+      font-size: clamp(22px, 5vw, 32px);
+      font-weight: 700;
+      letter-spacing: -.5px;
+    }
+    header h1 span { color: var(--primary); }
+    header p.subtitle {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    .version-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 3px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Main card ─────────────────────────────────────── */
+    main {
+      width: 100%;
+      max-width: 700px;
+      padding: 24px;
+      flex: 1;
+    }
+
+    /* ─── Tabs ──────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+    .tab-btn:not(.active):hover { background: var(--surface2); color: var(--text); }
+
+    /* ─── Panel ─────────────────────────────────────────── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ─── Card ──────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card h2 .icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      font-size: 15px;
+    }
+
+    /* ─── Steps list ────────────────────────────────────── */
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .steps li .num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .steps li span { padding-top: 3px; }
+    .steps li strong { color: var(--text); }
+
+    /* ─── Install button area ───────────────────────────── */
+    .install-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 28px;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      margin-top: 8px;
+    }
+    .install-area p {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* ESP Web Tools button slot */
+    esp-web-install-button {
+      --esp-tools-button-color: var(--primary);
+      --esp-tools-button-text-color: #fff;
+    }
+    .install-btn {
+      padding: 14px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px var(--primary-glow);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--primary-glow);
+    }
+    .install-btn:active { transform: translateY(0); }
+    .install-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* unsupported slot */
+    [slot="unsupported"] .install-btn { background: var(--surface3); cursor: not-allowed; box-shadow: none; }
+
+    /* ─── Progress overlay ──────────────────────────────── */
+    #progress-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,15,30,.85);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    #progress-overlay.show { display: flex; }
+    .progress-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .progress-card .spinner {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      border: 4px solid var(--surface3);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .progress-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+    .progress-bar-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #6366f1);
+      border-radius: 4px;
+      transition: width .4s ease;
+      width: 0%;
+    }
+    .progress-pct {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* ─── Success screen ────────────────────────────────── */
+    #success-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,15,30,.9);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #success-screen.show { display: flex; }
+    .success-card {
+      background: var(--surface);
+      border: 1px solid var(--success);
+      border-radius: var(--radius);
+      padding: 40px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(34,197,94,.15);
+    }
+    .checkmark-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      border: 2px solid var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: pop .4s cubic-bezier(.175,.885,.32,1.275);
+    }
+    @keyframes pop {
+      0%   { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .checkmark-circle svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--success);
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .success-card h3 { font-size: 22px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+    .success-card p  { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .success-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .btn-secondary {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-secondary:hover { background: var(--surface3); }
+    .btn-primary {
+      padding: 10px 20px;
+      font-size: 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    /* ─── Alert boxes ───────────────────────────────────── */
+    .alert {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    .alert-warning { background: var(--warning-bg); border: 1px solid var(--warning); color: var(--warning); }
+    .alert-info    { background: rgba(59,130,246,.1); border: 1px solid var(--primary); color: #93c5fd; }
+    .alert-error   { background: var(--error-bg); border: 1px solid var(--error); color: #fca5a5; }
+    .alert svg { flex-shrink: 0; width: 16px; height: 16px; margin-top: 1px; }
+
+    /* ─── Troubleshooting ───────────────────────────────── */
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    summary {
+      padding: 16px 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: '▸';
+      margin-left: auto;
+      color: var(--text-muted);
+      transition: transform var(--transition);
+    }
+    details[open] summary::after { transform: rotate(90deg); }
+    details[open] summary { border-bottom: 1px solid var(--border); }
+    .details-body {
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .details-body ul { padding-left: 18px; }
+    .details-body li { margin-bottom: 6px; }
+    .details-body code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* ─── OTA section ───────────────────────────────────── */
+    .ota-method {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .ota-method h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ota-method p { font-size: 13px; color: var(--text-muted); }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-green  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+    .badge-blue   { background: rgba(59,130,246,.15); color: #93c5fd; border: 1px solid var(--primary); }
+    .ota-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .ota-input-row input {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border var(--transition);
+    }
+    .ota-input-row input:focus { border-color: var(--primary); }
+    .ota-input-row input::placeholder { color: var(--text-muted); }
+
+    /* ─── Footer ────────────────────────────────────────── */
+    footer {
+      width: 100%;
+      max-width: 700px;
+      padding: 20px 24px 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    footer a { color: var(--text-muted); text-decoration: underline; }
+
+    /* ─── Responsive ────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .card { padding: 20px 16px; }
+      header { padding-top: 28px; }
+      .progress-card, .success-card { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Browser support banner (shown for non-Chrome/Edge) -->
+  <div id="browser-banner">
+    ⚠️ Web flashing requires <strong>Chrome</strong> or <strong>Edge</strong> on desktop.
+    <a href="https://www.google.com/chrome/" target="_blank">Download Chrome →</a>
+  </div>
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header>
+    <div class="logo">
+      <!-- Product logo: replace SVG or add <img src="logo.png"> -->
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 4L6 14v20l18 10 18-10V14L24 4z"/>
+        <path d="M24 4v36M6 14l18 10 18-10"/>
+        <circle cx="24" cy="24" r="4" fill="white" stroke="none"/>
+        <path d="M24 20v-6M24 34v-6M18 24h-6M36 24h-6"/>
+      </svg>
+    </div>
+    <h1>Power Monitor <span>Sensor</span></h1>
+    <p class="subtitle">ESP32-C3 Super Mini — Web Installer</p>
+    <span class="version-badge">Firmware v1.0.0</span>
+  </header>
+
+  <!-- ── Main ───────────────────────────────────────────── -->
+  <main>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" onclick="switchTab('install', this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        First Install
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab('ota', this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+        Firmware Update (OTA)
+      </button>
+    </div>
+
+    <!-- ══ INSTALL PANEL ════════════════════════════════ -->
+    <div id="panel-install" class="panel active">
+
+      <!-- Steps -->
+      <div class="card">
+        <h2><span class="icon">📋</span> Before you begin</h2>
+        <ol class="steps">
+          <li><span class="num">1</span><span>Plug your <strong>ESP32-C3 Super Mini</strong> into this computer via a <strong>USB data cable</strong> (not charge-only).</span></li>
+          <li><span class="num">2</span><span>Close <strong>Arduino IDE</strong>, <strong>esptool</strong>, or any other app using the serial port.</span></li>
+          <li><span class="num">3</span><span>Click <strong>Install Smart Sensor</strong> below and select your device from the browser popup.</span></li>
+          <li><span class="num">4</span><span>Wait <strong>20–40 seconds</strong> while the firmware is written. Do not disconnect.</span></li>
+          <li><span class="num">5</span><span>Done! Your device will reboot automatically.</span></li>
+        </ol>
+
+        <div class="alert alert-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Works in <strong>Chrome</strong> or <strong>Edge</strong> on desktop only. Mobile and Firefox are not supported.</span>
+        </div>
+      </div>
+
+      <!-- Install button -->
+      <div class="card">
+        <h2><span class="icon">⚡</span> Install Firmware</h2>
+        <div class="install-area">
+          <p>Connects via WebSerial and flashes <strong>bootloader + partitions + firmware</strong> in one step.</p>
+
+          <esp-web-install-button manifest="manifest.json" id="install-btn">
+            <button class="install-btn" slot="activate">
+              <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              Install Smart Sensor
+            </button>
+            <span slot="unsupported">
+              <button class="install-btn" disabled>
+                ⚠️ Browser not supported — use Chrome or Edge
+              </button>
+            </span>
+          </esp-web-install-button>
+
+          <p>Chip: <strong>ESP32-C3 Super Mini</strong> &nbsp;|&nbsp; Flash: ~1.5 MB</p>
+        </div>
+      </div>
+
+    </div><!-- /panel-install -->
+
+    <!-- ══ OTA PANEL ════════════════════════════════════ -->
+    <div id="panel-ota" class="panel">
+
+      <div class="card">
+        <h2><span class="icon">🔄</span> Firmware Update (OTA)</h2>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:18px;">
+          Choose your preferred OTA method. The device must already have this firmware installed.
+        </p>
+
+        <!-- Method 1: Web OTA via ESP Web Tools -->
+        <div class="ota-method">
+          <h4>
+            <span class="badge badge-green">Recommended</span>
+            Method 1 — Update via USB (ESP Web Tools)
+          </h4>
+          <p>Same as first install — connects via USB cable and re-flashes only the firmware partition.</p>
+          <div style="margin-top:16px;">
+            <div class="install-area" style="padding:20px;">
+              <esp-web-install-button manifest="manifest-ota.json" id="ota-btn">
+                <button class="install-btn" slot="activate" style="background: linear-gradient(135deg,#16a34a,#15803d);">
+                  <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg>
+                  Update Firmware
+                </button>
+                <span slot="unsupported">
+                  <button class="install-btn" disabled>⚠️ Browser not supported</button>
+                </span>
+              </esp-web-install-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Method 2: HTTP OTA via device local page -->
+        <div class="ota-method">
+          <h4>
+            <span class="badge badge-blue">WiFi</span>
+            Method 2 — Over-the-Air via Local Network
+          </h4>
+          <p>Open the device's built-in OTA update page on your local network. Device must be connected to WiFi.</p>
+          <div class="ota-input-row">
+            <input type="text" id="device-ip" placeholder="Device IP address  e.g. 192.168.1.42" />
+            <button class="btn-primary" onclick="openDeviceOTA()">Open Device Page →</button>
+          </div>
+          <div class="alert alert-info" style="margin-top:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Find the IP address in your router's admin page or from the device serial output.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OTA instructions -->
+      <div class="card">
+        <h2><span class="icon">📦</span> What gets updated?</h2>
+        <ol class="steps">
+          <li><span class="num">1</span><span>Only the <strong>application partition</strong> (firmware.bin) is replaced — bootloader and settings are preserved.</span></li>
+          <li><span class="num">2</span><span>Your device's <strong>WiFi credentials</strong> and <strong>configuration</strong> are not erased.</span></li>
+          <li><span class="num">3</span><span>The device reboots into the new firmware automatically after update.</span></li>
+        </ol>
+      </div>
+
+    </div><!-- /panel-ota -->
+
+    <!-- ══ TROUBLESHOOTING (both panels) ════════════════ -->
+    <details>
+      <summary>🔌 Serial port not found / no device listed</summary>
+      <div class="details-body">
+        <ul>
+          <li>Try a different USB cable — many cables are <strong>charge-only</strong> and have no data lines.</li>
+          <li>Install the <strong>CH340 / CP210x driver</strong> for your OS (ESP32-C3 Super Mini uses CH340G).</li>
+          <li>On Linux, add yourself to the <code>dialout</code> group: <code>sudo usermod -aG dialout $USER</code>, then log out and back in.</li>
+          <li>Close all serial monitors (Arduino IDE, minicom, screen).</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>⚠️ Flashing starts but fails or times out</summary>
+      <div class="details-body">
+        <ul>
+          <li>Hold the <strong>BOOT button</strong> on the ESP32-C3 Super Mini while clicking Install, release after the progress starts.</li>
+          <li>Try a shorter USB cable or a different port on your computer.</li>
+          <li>Reduce the baud rate if you see frequent errors (this is handled automatically by ESP Web Tools).</li>
+          <li>Ensure the device is <strong>not in deep sleep</strong> — press the reset button first.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>🌐 Browser says "WebSerial not supported"</summary>
+      <div class="details-body">
+        <ul>
+          <li>Use <strong>Google Chrome 89+</strong> or <strong>Microsoft Edge 89+</strong> on Windows, macOS, or Linux desktop.</li>
+          <li>Firefox, Safari, and mobile browsers do not support WebSerial.</li>
+          <li>Check that <code>chrome://flags/#enable-experimental-web-platform-features</code> is enabled if using an older Chrome version.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>💡 Device connected but not responding after install</summary>
+      <div class="details-body">
+        <ul>
+          <li>Press the <strong>RST (reset) button</strong> on the board to force a reboot.</li>
+          <li>Open a serial monitor at <strong>115200 baud</strong> to see boot messages.</li>
+          <li>If the device bootloops, re-flash using the <em>First Install</em> tab (full flash).</li>
+        </ul>
+      </div>
+    </details>
+
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+  <footer>
+    Power Monitor Sensor &nbsp;·&nbsp; ESP32-C3 Super Mini &nbsp;·&nbsp;
+    Powered by <a href="https://esphome.github.io/esp-web-tools/" target="_blank" rel="noopener">ESP Web Tools</a>
+  </footer>
+
+  <!-- ══ Progress overlay ═════════════════════════════════ -->
+  <div id="progress-overlay">
+    <div class="progress-card">
+      <div class="spinner"></div>
+      <h3 id="progress-title">Preparing…</h3>
+      <p  id="progress-desc">Connecting to ESP32-C3 Super Mini</p>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-pct" id="progress-pct">0%</div>
+    </div>
+  </div>
+
+  <!-- ══ Success screen ════════════════════════════════════ -->
+  <div id="success-screen">
+    <div class="success-card">
+      <div class="checkmark-circle">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>Device Ready! 🎉</h3>
+      <p id="success-msg">Power Monitor Sensor firmware installed successfully.<br>The device is rebooting — this takes about 5 seconds.</p>
+      <div class="success-actions">
+        <button class="btn-secondary" onclick="closeSuccess()">Close</button>
+        <button class="btn-primary" onclick="switchTab('ota', document.querySelectorAll('.tab-btn')[1]); closeSuccess();">Future Updates →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Scripts ═══════════════════════════════════════════ -->
+  <script>
+    /* ── Browser detection ── */
+    (function () {
+      const isChromium = !!window.chrome || navigator.userAgent.includes('Edg');
+      if (!isChromium || /Mobi|Android/i.test(navigator.userAgent)) {
+        document.getElementById('browser-banner').style.display = 'block';
+      }
+    })();
+
+    /* ── Tab switching ── */
+    function switchTab(name, btn) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    /* ── OTA local page ── */
+    function openDeviceOTA() {
+      const ip = document.getElementById('device-ip').value.trim();
+      if (!ip) { alert('Please enter the device IP address.'); return; }
+      const url = 'http://' + ip + '/update';
+      window.open(url, '_blank', 'noopener');
+    }
+
+    /* ── Progress state map ── */
+    const STATE_MAP = {
+      'initializing':  { title: 'Initializing…',       desc: 'Starting ESP Web Tools',                     pct: 5  },
+      'preparing':     { title: 'Preparing…',           desc: 'Connecting to ESP32-C3 Super Mini',          pct: 15 },
+      'erasing':       { title: 'Erasing flash…',       desc: 'Clearing existing firmware',                 pct: 30 },
+      'writing':       { title: 'Writing firmware…',    desc: 'Flashing Power Monitor Sensor — please wait', pct: 60 },
+      'finished':      { title: 'Done!',                desc: 'Firmware written successfully',              pct: 100 },
+      'error':         { title: 'Error',                desc: 'Something went wrong — see troubleshooting', pct: 0  },
+    };
+
+    function setProgress(state, bytePct) {
+      const info = STATE_MAP[state] || { title: state, desc: '', pct: 0 };
+      const pct  = bytePct !== undefined ? Math.round(bytePct * 100) : info.pct;
+
+      document.getElementById('progress-title').textContent = info.title;
+      document.getElementById('progress-desc').textContent  = info.desc;
+      document.getElementById('progress-fill').style.width  = pct + '%';
+      document.getElementById('progress-pct').textContent   = pct + '%';
+    }
+
+    /* ── Attach events to both install buttons ── */
+    function attachEvents(btnId, isOTA) {
+      const el = document.getElementById(btnId);
+      if (!el) return;
+
+      el.addEventListener('state-changed', (ev) => {
+        const { state, details } = ev.detail;
+
+        if (state === 'initializing' || state === 'preparing' || state === 'erasing' || state === 'writing') {
+          document.getElementById('progress-overlay').classList.add('show');
+          const bytePct = details && details.bytesTotal
+            ? details.bytesWritten / details.bytesTotal
+            : undefined;
+          setProgress(state, bytePct);
+        }
+
+        if (state === 'finished') {
+          document.getElementById('progress-overlay').classList.remove('show');
+          if (isOTA) {
+            document.getElementById('success-msg').textContent =
+              'Firmware updated successfully! The device is rebooting into the new version.';
+          } else {
+            document.getElementById('success-msg').textContent =
+              'Power Monitor Sensor firmware installed successfully.\nThe device is rebooting — this takes about 5 seconds.';
+          }
+          document.getElementById('success-screen').classList.add('show');
+        }
+
+        if (state === 'error') {
+          document.getElementById('progress-overlay').classList.remove('show');
+        }
+      });
+    }
+
+    // Wait for custom elements to be defined
+    customElements.whenDefined('esp-web-install-button').then(() => {
+      attachEvents('install-btn', false);
+      attachEvents('ota-btn',     true);
+    });
+
+    function closeSuccess() {
+      document.getElementById('success-screen').classList.remove('show');
+    }
+  </script>
+
+</body>
+</html>
