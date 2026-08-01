@@ -107,6 +107,41 @@
       flex: 1;
     }
 
+    /* ─── Board selector ────────────────────────────────── */
+    .board-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .board-btn {
+      flex: 1;
+      min-width: 180px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .board-btn.active {
+      border-color: var(--primary);
+      background: rgba(59,130,246,.1);
+      color: var(--text);
+    }
+    .board-btn:not(.active):hover { background: var(--surface2); }
+    .board-btn .badge { pointer-events: none; }
+
+    /* Elements scoped to a specific board — JS toggles which set is shown. */
+    [data-board] { display: none; }
+
     /* ─── Tabs ──────────────────────────────────────────── */
     .tabs {
       display: flex;
@@ -524,12 +559,22 @@
       </svg>
     </div>
     <h1>Power Monitor <span>Sensor</span></h1>
-    <p class="subtitle">ESP32-C3 Super Mini — Веб-інсталятор</p>
+    <p class="subtitle" id="board-subtitle">Веб-інсталятор</p>
     <span class="version-badge">Прошивка v1.0.0</span>
   </header>
 
   <!-- ── Main ───────────────────────────────────────────── -->
   <main>
+
+    <!-- Board selector -->
+    <div class="board-select" role="tablist" aria-label="Плата">
+      <button class="board-btn active" data-select-board="zero" role="tab" onclick="switchBoard('zero', this)">
+        ESP32-C3 Zero
+      </button>
+      <button class="board-btn" data-select-board="supermini" role="tab" onclick="switchBoard('supermini', this)">
+        ESP32-C3 SuperMini
+      </button>
+    </div>
 
     <!-- Tabs -->
     <div class="tabs" role="tablist">
@@ -550,7 +595,7 @@
       <div class="card">
           <h2><span class="icon">📋</span> Перед початком</h2>
         <ol class="steps">
-            <li><span class="num">1</span><span>Підключіть <strong>ESP32-C3 Super Mini</strong> до цього комп'ютера через <strong>USB-кабель для передачі даних</strong> (не лише для заряджання).</span></li>
+            <li><span class="num">1</span><span>Підключіть обрану вище плату (<strong id="board-name-step1">ESP32-C3 Zero</strong>) до цього комп'ютера через <strong>USB-кабель для передачі даних</strong> (не лише для заряджання).</span></li>
             <li><span class="num">2</span><span>Закрийте <strong>Arduino IDE</strong>, <strong>esptool</strong> та інші програми, що використовують послідовний порт.</span></li>
             <li><span class="num">3</span><span>Натисніть <strong>Встановити Smart Sensor</strong> нижче та виберіть свій пристрій у вікні браузера.</span></li>
             <li><span class="num">4</span><span>Зачекайте <strong>20–40 секунд</strong>, поки записується прошивка. Не від'єднуйте пристрій.</span></li>
@@ -566,10 +611,12 @@
       <!-- Install button -->
       <div class="card">
           <h2><span class="icon">⚡</span> Встановити прошивку</h2>
-        <div class="install-area">
+
+        <!-- Zero: real, working install -->
+        <div class="install-area" data-board="zero">
             <p>Підключається через WebSerial і прошиває <strong>bootloader + partitions + firmware</strong> за один крок.</p>
 
-          <esp-web-install-button manifest="manifest.json" id="install-btn">
+          <esp-web-install-button manifest="boards/zero/manifest.json" id="install-btn-zero">
             <button class="install-btn" slot="activate">
               <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
                 Встановити Smart Sensor
@@ -581,7 +628,26 @@
             </span>
           </esp-web-install-button>
 
-            <p>Чип: <strong>ESP32-C3 Super Mini</strong> &nbsp;|&nbsp; Розмір: ~1.5 MB</p>
+            <p>Чип: <strong>ESP32-C3 Zero</strong> &nbsp;|&nbsp; Розмір: ~1.5 MB</p>
+        </div>
+
+        <!-- SuperMini: real, working install -->
+        <div class="install-area" data-board="supermini">
+            <p>Підключається через WebSerial і прошиває <strong>bootloader + partitions + firmware</strong> за один крок.</p>
+
+          <esp-web-install-button manifest="boards/supermini/manifest.json" id="install-btn-supermini">
+            <button class="install-btn" slot="activate">
+              <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+                Встановити Smart Sensor
+            </button>
+            <span slot="unsupported">
+              <button class="install-btn" disabled>
+                  ⚠️ Браузер не підтримується — використайте Chrome або Edge
+              </button>
+            </span>
+          </esp-web-install-button>
+
+            <p>Чип: <strong>ESP32-C3 SuperMini</strong> &nbsp;|&nbsp; Розмір: ~1.5 MB</p>
         </div>
       </div>
 
@@ -604,8 +670,21 @@
           </h4>
             <p>Так само, як і перше встановлення: підключення через USB-кабель і перепрошивка лише розділу firmware.</p>
           <div style="margin-top:16px;">
-            <div class="install-area" style="padding:20px;">
-              <esp-web-install-button manifest="manifest-ota.json" id="ota-btn">
+            <!-- Zero: real, working OTA -->
+            <div class="install-area" style="padding:20px;" data-board="zero">
+              <esp-web-install-button manifest="boards/zero/manifest-ota.json" id="ota-btn-zero">
+                <button class="install-btn" slot="activate" style="background: linear-gradient(135deg,#16a34a,#15803d);">
+                  <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg>
+                    Оновити прошивку
+                </button>
+                <span slot="unsupported">
+                    <button class="install-btn" disabled>⚠️ Браузер не підтримується</button>
+                </span>
+              </esp-web-install-button>
+            </div>
+            <!-- SuperMini: real, working OTA -->
+            <div class="install-area" style="padding:20px;" data-board="supermini">
+              <esp-web-install-button manifest="boards/supermini/manifest-ota.json" id="ota-btn-supermini">
                 <button class="install-btn" slot="activate" style="background: linear-gradient(135deg,#16a34a,#15803d);">
                   <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/></svg>
                     Оновити прошивку
@@ -655,7 +734,7 @@
       <div class="details-body">
         <ul>
             <li>Спробуйте інший USB-кабель — багато кабелів призначені <strong>лише для заряджання</strong> і не мають ліній даних.</li>
-            <li>Встановіть <strong>драйвер CH340 / CP210x</strong> для вашої ОС (ESP32-C3 Super Mini використовує CH340G).</li>
+            <li><strong>ESP32-C3 Zero</strong> підключається через нативний USB (без окремого чипа-мосту) — додаткові драйвери зазвичай не потрібні на сучасних Windows/macOS/Linux. Якщо ваша плата <strong>SuperMini</strong> все ж не відображається, спробуйте встановити <strong>драйвер CH340 / CP210x</strong> — деякі варіанти SuperMini використовують окремий USB-UART міст.</li>
             <li>У Linux додайте себе до групи <code>dialout</code>: <code>sudo usermod -aG dialout $USER</code>, потім вийдіть і увійдіть знову.</li>
             <li>Закрийте всі програми моніторингу порту (Arduino IDE, minicom, screen).</li>
         </ul>
@@ -666,7 +745,7 @@
       <summary>⚠️ Прошивка стартує, але завершується помилкою або таймаутом</summary>
       <div class="details-body">
         <ul>
-            <li>Утримуйте <strong>кнопку BOOT</strong> на ESP32-C3 Super Mini під час натискання «Встановити», відпустіть після початку прогресу.</li>
+            <li>На <strong>ESP32-C3 Zero</strong> немає окремого USB-UART моста, тому потрібно утримувати <strong>кнопку BOOT</strong> під час натискання «Встановити» і відпустити після початку прогресу.</li>
             <li>Спробуйте коротший USB-кабель або інший USB-порт на комп'ютері.</li>
             <li>Зменште baud rate, якщо бачите часті помилки (ESP Web Tools зазвичай робить це автоматично).</li>
             <li>Переконайтеся, що пристрій <strong>не в deep sleep</strong> — спочатку натисніть кнопку reset.</li>
@@ -700,7 +779,7 @@
 
   <!-- ── Footer ─────────────────────────────────────────── -->
   <footer>
-    Power Monitor Sensor &nbsp;·&nbsp; ESP32-C3 Super Mini &nbsp;·&nbsp;
+    Power Monitor Sensor &nbsp;·&nbsp; ESP32-C3 &nbsp;·&nbsp;
     Працює на базі <a href="https://esphome.github.io/esp-web-tools/" target="_blank" rel="noopener">ESP Web Tools</a>
   </footer>
 
@@ -709,7 +788,7 @@
     <div class="progress-card">
       <div class="spinner"></div>
       <h3 id="progress-title">Підготовка…</h3>
-      <p  id="progress-desc">Підключення до ESP32-C3 Super Mini</p>
+      <p  id="progress-desc">Підключення до пристрою</p>
       <div class="progress-bar-track">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
@@ -750,6 +829,29 @@
       btn.classList.add('active');
     }
 
+    /* ── Board switching ── */
+    const BOARD_NAMES = { zero: 'ESP32-C3 Zero', supermini: 'ESP32-C3 SuperMini' };
+    let selectedBoard = 'zero';
+
+    function switchBoard(board, btn) {
+      selectedBoard = board;
+      document.querySelectorAll('.board-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Show only the elements scoped to the selected board (see the
+      // `[data-board] { display: none; }` base rule in <style>) — restoring
+      // an empty inline style lets each element's own natural CSS display
+      // value (block, flex, …) take over again instead of hardcoding one.
+      document.querySelectorAll('[data-board]').forEach(el => {
+        el.style.display = el.dataset.board === board ? '' : 'none';
+      });
+
+      const name = BOARD_NAMES[board] || board;
+      document.getElementById('board-subtitle').textContent = name + ' — Веб-інсталятор';
+      const stepLabel = document.getElementById('board-name-step1');
+      if (stepLabel) stepLabel.textContent = name;
+    }
+
     /* ── OTA local page ── */
     function openDeviceOTA() {
       const ip = document.getElementById('device-ip').value.trim();
@@ -761,7 +863,7 @@
     /* ── Progress state map ── */
     const STATE_MAP = {
       'initializing':  { title: 'Ініціалізація…',       desc: 'Запуск ESP Web Tools',                       pct: 5  },
-      'preparing':     { title: 'Підготовка…',          desc: 'Підключення до ESP32-C3 Super Mini',         pct: 15 },
+      'preparing':     { title: 'Підготовка…',          desc: 'Підключення до пристрою',                     pct: 15 },
       'erasing':       { title: 'Очищення flash…',      desc: 'Очищення наявної прошивки',                   pct: 30 },
       'writing':       { title: 'Запис прошивки…',      desc: 'Прошивання Power Monitor Sensor — зачекайте', pct: 60 },
       'finished':      { title: 'Готово!',              desc: 'Прошивку успішно записано',                   pct: 100 },
@@ -814,8 +916,16 @@
 
     // Wait for custom elements to be defined
     customElements.whenDefined('esp-web-install-button').then(() => {
-      attachEvents('install-btn', false);
-      attachEvents('ota-btn',     true);
+      attachEvents('install-btn-zero',      false);
+      attachEvents('ota-btn-zero',          true);
+      attachEvents('install-btn-supermini', false);
+      attachEvents('ota-btn-supermini',     true);
+    });
+
+    // Show the default board's elements on load (SuperMini has no live
+    // esp-web-install-button yet, so only Zero's is wired above).
+    document.querySelectorAll('[data-board]').forEach(el => {
+      el.style.display = el.dataset.board === selectedBoard ? '' : 'none';
     });
 
     function closeSuccess() {
