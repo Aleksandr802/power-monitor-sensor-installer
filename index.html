@@ -880,6 +880,21 @@
       document.getElementById('progress-pct').textContent   = pct + '%';
     }
 
+    /* ── Close ESP Web Tools' own dialog (see comment at the 'finished' handler below) ── */
+    function closeEspWebToolsDialog() {
+      try {
+        const dialog = document.querySelector('ewt-install-dialog');
+        const ewDialog = dialog && dialog.shadowRoot && dialog.shadowRoot.querySelector('ew-dialog');
+        if (ewDialog && typeof ewDialog.close === 'function') {
+          ewDialog.close();
+        }
+      } catch (e) {
+        // Best-effort only — if esp-web-tools changes its internal structure
+        // in a future version, worst case is the old behavior (dialog stays
+        // open behind ours), not a broken page.
+      }
+    }
+
     /* ── Attach events to both install buttons ── */
     function attachEvents(btnId, isOTA) {
       const el = document.getElementById(btnId);
@@ -905,7 +920,17 @@
             document.getElementById('success-msg').textContent =
                 'Прошивку Power Monitor Sensor успішно встановлено.\nПристрій перезавантажується — це займе близько 5 секунд.';
           }
-          document.getElementById('success-screen').classList.add('show');
+          // ESP Web Tools keeps its own <ewt-install-dialog> open in the
+          // background after flashing finishes — our overlay just sits on
+          // top of it. Without closing it, it's still there once our
+          // overlay is dismissed, which looks exactly like the install
+          // window reopening. Close it the same way its own close button
+          // does internally (there's no public API for this, so mirror the
+          // library's own _closeDialog(): shadowRoot.querySelector('ew-dialog').close()).
+          closeEspWebToolsDialog();
+          setTimeout(() => {
+            document.getElementById('success-screen').classList.add('show');
+          }, 50);
         }
 
         if (state === 'error') {
