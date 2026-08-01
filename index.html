@@ -880,19 +880,28 @@
       document.getElementById('progress-pct').textContent   = pct + '%';
     }
 
-    /* ── Close ESP Web Tools' own dialog (see comment at the 'finished' handler below) ── */
-    function closeEspWebToolsDialog() {
-      try {
-        const dialog = document.querySelector('ewt-install-dialog');
-        const ewDialog = dialog && dialog.shadowRoot && dialog.shadowRoot.querySelector('ew-dialog');
-        if (ewDialog && typeof ewDialog.close === 'function') {
-          ewDialog.close();
-        }
-      } catch (e) {
-        // Best-effort only — if esp-web-tools changes its internal structure
-        // in a future version, worst case is the old behavior (dialog stays
-        // open behind ours), not a broken page.
+    /* ── Wait for ESP Web Tools' own <ewt-install-dialog> to actually close ──
+       Its "Finished" screen has its own "Next" button that the user clicks
+       themselves (leading to its own "Logs & Console" dashboard, not a
+       close) — there's no way to skip that from outside, and trying to
+       force-close it early just fights the flow the user is meant to drive.
+       Instead, wait for the dialog element to be removed from the page
+       (which is what its own close button actually does — confirmed in its
+       source: `this.parentNode.removeChild(this)`) and only then show our
+       success screen, so it can never appear stacked on top of a still-open
+       library dialog. */
+    function watchForInstallDialogClose(onClosed) {
+      if (!document.querySelector('ewt-install-dialog')) {
+        onClosed();
+        return;
       }
+      const observer = new MutationObserver(() => {
+        if (!document.querySelector('ewt-install-dialog')) {
+          observer.disconnect();
+          onClosed();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
     }
 
     /* ── Attach events to both install buttons ── */
@@ -920,17 +929,13 @@
             document.getElementById('success-msg').textContent =
                 'Прошивку Power Monitor Sensor успішно встановлено.\nПристрій перезавантажується — це займе близько 5 секунд.';
           }
-          // ESP Web Tools keeps its own <ewt-install-dialog> open in the
-          // background after flashing finishes — our overlay just sits on
-          // top of it. Without closing it, it's still there once our
-          // overlay is dismissed, which looks exactly like the install
-          // window reopening. Close it the same way its own close button
-          // does internally (there's no public API for this, so mirror the
-          // library's own _closeDialog(): shadowRoot.querySelector('ew-dialog').close()).
-          closeEspWebToolsDialog();
-          setTimeout(() => {
+          // Let the user finish interacting with ESP Web Tools' own dialog
+          // (its "Finished" screen → their own "Next" click → its dashboard
+          // → their own close) before showing ours — see
+          // watchForInstallDialogClose() above for why.
+          watchForInstallDialogClose(() => {
             document.getElementById('success-screen').classList.add('show');
-          }, 50);
+          });
         }
 
         if (state === 'error') {
