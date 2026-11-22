@@ -3,11 +3,12 @@
 A GitHub Pages site for flashing and updating the **Power Monitor Sensor** firmware
 directly from the browser using [ESP Web Tools](https://esphome.github.io/esp-web-tools/).
 
-Supports two board variants, selected via a picker at the top of the page:
+Supports three board variants, selected via a picker at the top of the page:
 
 | Board | Status | Notes |
 |---|---|---|
 | **ESP32-C3 Zero** | ✅ Live | Native USB (no UART bridge chip) — hold BOOT while plugging in to enter the bootloader. |
+| **Seeed Studio XIAO ESP32-C3** | ✅ Live | Own firmware build in `boards/xiao/` from [SAVPowerMonitorSensorXiao](https://github.com/Aleksandr802/SAVPowerMonitorSensorXiao). No on-board antenna or user LED: connect the U.FL antenna, a blue LED on D10 and a red LED on D2 (each via 220–330 Ω to GND). To enter the bootloader: hold BOOT, tap RESET, release BOOT. |
 | **ESP32-C3 SuperMini** | ✅ Live | Own firmware build in `boards/supermini/`. The only board-specific code in the firmware is the status LED (`STATUS_LED_PIN` in `PowerMonitorSensor/src/main.cpp`) — SuperMini clones vary by seller, so make sure any future rebuilds target the LED wiring on the actual board you're flashing. |
 
 ---
@@ -64,12 +65,13 @@ esp32-web-installer/
 │   │   ├── bootloader.bin      # ESP32-C3 bootloader  (offset 0x0000)
 │   │   ├── partitions.bin      # Partition table       (offset 0x8000 / 32768)
 │   │   └── firmware.bin        # Application firmware  (offset 0x10000 / 65536)
-│   └── supermini/
-│       ├── manifest.json       # Full flash manifest  (bootloader + partitions + firmware)
-│       ├── manifest-ota.json   # OTA-only manifest    (firmware partition only)
-│       ├── bootloader.bin      # ESP32-C3 bootloader  (offset 0x0000)
-│       ├── partitions.bin      # Partition table       (offset 0x8000 / 32768)
-│       └── firmware.bin        # Application firmware  (offset 0x10000 / 65536)
+│   ├── supermini/
+│   │   ├── manifest.json       # Full flash manifest  (bootloader + partitions + firmware)
+│   │   ├── manifest-ota.json   # OTA-only manifest    (firmware partition only)
+│   │   ├── bootloader.bin      # ESP32-C3 bootloader  (offset 0x0000)
+│   │   ├── partitions.bin      # Partition table       (offset 0x8000 / 32768)
+│   │   └── firmware.bin        # Application firmware  (offset 0x10000 / 65536)
+│   └── xiao/                   # Same five files, built from SAVPowerMonitorSensorXiao (env xiao-esp32c3)
 └── README.md
 ```
 
@@ -101,8 +103,8 @@ firmware.bin    →  esp32-web-installer/boards/<board>/firmware.bin
 
 ### Updating an existing board's firmware
 
-Both boards are wired up the same way — just overwrite the three `.bin` files in
-`boards/zero/` or `boards/supermini/` with a fresh build and commit. No `index.html`
+All boards are wired up the same way — just overwrite the three `.bin` files in
+`boards/zero/`, `boards/supermini/` or `boards/xiao/` with a fresh build and commit. No `index.html`
 or manifest changes needed unless you're adding a brand-new board.
 
 ### From Arduino IDE
